@@ -1,0 +1,16 @@
+TASTE-Dataview DEFINITIONS ::=
+
+
+BEGIN
+
+MyInteger   ::= INTEGER (0..255)
+
+SeqInt ::= SEQUENCE (SIZE(0..1)) OF MyInteger
+
+BoolSensor ::= BOOLEAN
+
+StageTy ::= INTEGER (0..7)
+SeqBool ::= SEQUENCE(SIZE(1..5)) OF BOOLEAN
+
+
+END

@@ -1,0 +1,175 @@
+SYSTEM tandem;
+    /* CIF TEXT (94, 110), (272, 418) */
+    -- Text area for declarations and comments
+use dv comment 'dataview-uniq.asn';
+--use dv2 comment 'dataview2.asn';
+signal back;
+signal full_load;
+signal panic;
+
+signal tout;
+signal wrng;
+    /* CIF ENDTEXT */
+    CHANNEL c
+        FROM ENV TO tandem WITH full_load,
+back,
+panic;
+        FROM tandem TO ENV WITH tout,
+wrng;
+    ENDCHANNEL;
+    BLOCK tandem;
+        SIGNALROUTE r
+            FROM ENV TO tandem WITH full_load,
+back,
+panic;
+            FROM tandem TO ENV WITH tout,
+wrng;
+        CONNECT c AND r;
+        /* CIF PROCESS (138, 4), (124, 71) */
+        PROCESS tandem;
+            /* CIF TEXT (0, 9), (228, 459) */
+            -- Text area for declarations and
+-- comments
+dcl saved_signal SeqInt;
+
+dcl ZONE_2_CLEAR BoolSensor;
+dcl ZONE_3_CLEAR BoolSensor;
+
+dcl CTRL_PIN_ZONE_2      StageTy ;
+dcl CTRL_PIN_ZONE_3      StageTy ;
+
+-- TIMERS
+Timer tmrZone2;
+Timer tmrZone3;
+
+procedure dout_set;
+fpar in/out pin StageTy;
+external;
+
+procedure dout_rst;
+fpar in/out pin StageTy;
+external;
+
+procedure save_msg;
+external;
+procedure get_msg;
+external;
+            /* CIF ENDTEXT */
+            /* CIF PROCEDURE (257, 30), (60, 35) */
+            PROCEDURE PANIC;
+            ENDPROCEDURE;
+            /* CIF START (562, 18), (30, 15) */
+            START;
+                /* CIF NEXTSTATE (556, 52), (42, 25) */
+                NEXTSTATE init;
+            /* CIF STATE (654, 220), (29, 25) */
+            STATE *;
+                /* CIF INPUT (641, 266), (55, 25) */
+                INPUT panic;
+                    /* CIF PROCEDURECALL (638, 311), (60, 25) */
+                    CALL PANIC;
+                    /* CIF NEXTSTATE (626, 356), (85, 25) */
+                    NEXTSTATE exception;
+            ENDSTATE;
+            /* CIF STATE (514, 370), (73, 25) */
+            STATE Z2;
+                /* CIF PROVIDED (410, 415), (82, 25) */
+                PROVIDED tmrZone2;
+                    /* CIF OUTPUT (426, 460), (50, 25) */
+                    OUTPUT tout;
+                    /* CIF NEXTSTATE (409, 505), (85, 25) */
+                    NEXTSTATE exception;
+                /* CIF PROVIDED (544, 415), (115, 25) */
+                PROVIDED ZONE_2_CLEAR;
+                    /* CIF PROCEDURECALL (506, 460), (192, 25) */
+                    CALL dout_rst(CTRL_PIN_ZONE_2);
+                    /* CIF PROCEDURECALL (518, 505), (168, 25) */
+                    CALL reset_timer(tmrZone2);
+                    /* CIF PROCEDURECALL (504, 550), (195, 25) */
+                    CALL dout_set(CTRL_PIN_ZONE_3);
+                    /* CIF PROCEDURECALL (509, 590), (185, 25) */
+                    CALL set_timer(1000,tmrZone3);
+                    /* CIF NEXTSTATE (565, 630), (73, 25) */
+                    NEXTSTATE Z3;
+            ENDSTATE;
+            /* CIF STATE (1124, 10), (73, 25) */
+            STATE Z1;
+                /* CIF INPUT (803, 55), (76, 25) */
+                INPUT full_load;
+                    /* CIF LABEL (799, 95), (85, 39) */
+                    a:
+                    /* CIF PROCEDURECALL (742, 149), (198, 25) */
+                    CALL dout_set(CTRL_PIN_ZONE_2);
+                    /* CIF PROCEDURECALL (749, 194), (185, 25) */
+                    CALL set_timer(1000,tmrZone2);
+                    /* CIF NEXTSTATE (805, 234), (73, 25) */
+                    NEXTSTATE Z2;
+                /* CIF PROVIDED (1160, 148), (162, 25) */
+                PROVIDED ZONE_3_CLEAR = false;
+                    /* CIF NEXTSTATE (1199, 188), (85, 25) */
+                    NEXTSTATE exception;
+                /* CIF PROVIDED (950, 55), (166, 35) */
+                PROVIDED length(saved_signal)>0
+                /* CIF COMMENT (1136, 55), (86, 76) */
+                COMMENT 'Recupera
+señal 
+"full_load"
+guardada';
+                    /* CIF JOIN (1016, 105), (35, 35) */
+                    JOIN a;
+            ENDSTATE;
+            /* CIF STATE (1008, 265), (73, 25) */
+            STATE Z3;
+                /* CIF INPUT (1095, 310), (76, 25) */
+                INPUT full_load;
+                    /* CIF PROCEDURECALL (1092, 355), (82, 25) */
+                    CALL save_msg
+                    /* CIF COMMENT (1194, 350), (156, 110) */
+                    COMMENT 'La señal se 
+guarda para
+ser recibida 
+asíncronamente 
+al volver al 
+estado Z2 ';
+                /* CIF PROVIDED (796, 310), (82, 25) */
+                PROVIDED tmrZone3;
+                    /* CIF OUTPUT (811, 355), (52, 25) */
+                    OUTPUT tout;
+                    /* CIF NEXTSTATE (795, 400), (85, 25) */
+                    NEXTSTATE exception;
+                /* CIF PROVIDED (928, 310), (115, 25) */
+                PROVIDED ZONE_3_CLEAR;
+                    /* CIF PROCEDURECALL (902, 355), (168, 25) */
+                    CALL reset_timer(tmrZone3);
+                    /* CIF PROCEDURECALL (890, 400), (192, 25) */
+                    CALL dout_rst(CTRL_PIN_ZONE_3);
+                    /* CIF NEXTSTATE (949, 445), (73, 25) */
+                    NEXTSTATE Z1;
+            ENDSTATE;
+            /* CIF STATE (238, 354), (85, 25) */
+            STATE exception;
+                /* CIF INPUT (255, 399), (52, 25) */
+                INPUT back;
+                    /* CIF NEXTSTATE (260, 444), (42, 25) */
+                    NEXTSTATE init;
+            ENDSTATE;
+            /* CIF STATE (556, 52), (42, 25) */
+            STATE init;
+                /* CIF PROVIDED (355, 97), (189, 42) */
+                PROVIDED ZONE_3_CLEAR  AND 
+ZONE_2_CLEAR;
+                    /* CIF PROCEDURECALL (354, 159), (192, 25) */
+                    CALL dout_rst(CTRL_PIN_ZONE_2);
+                    /* CIF PROCEDURECALL (354, 204), (192, 25) */
+                    CALL dout_rst(CTRL_PIN_ZONE_3);
+                    /* CIF NEXTSTATE (399, 244), (102, 25) */
+                    NEXTSTATE Z1;
+                /* CIF PROVIDED (557, 97), (168, 42) */
+                PROVIDED (ZONE_3_CLEAR AND 
+ZONE_2_CLEAR ) /= true;
+                    /* CIF OUTPUT (615, 159), (52, 25) */
+                    OUTPUT wrng;
+            ENDSTATE;
+        ENDPROCESS tandem;
+    ENDBLOCK;
+ENDSYSTEM;
